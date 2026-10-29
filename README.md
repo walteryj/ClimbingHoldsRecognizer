@@ -1,1 +1,1 @@
-1. Recognize holds on wall
+1. Train Model to recognize holds on a wall using Supervised Learning
