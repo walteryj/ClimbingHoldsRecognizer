@@ -14,12 +14,11 @@ DID:
                 - training, validation, and final test, datatset (supervised learning)
 
     - yolo26n detection model for initial training on hold detection ran on 1.jpg
-        ![pretrained-yolo26n](data/detection_result_yolo26n.jpg)
+        ![pretrained-yolo26n](detection_result_yolo26n.jpg)
         
 
     - trained the yolo26n model with the annotated data set then ran on 1.jpg again
-        ![posttrained-yolo26n](data/detection_result_climbing-holds.jpg)
-        - 
+        ![posttrained-yolo26n](detection_result_climbing-holds.jpg)
     
          
 TO-DO: 
