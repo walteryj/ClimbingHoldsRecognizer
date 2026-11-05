@@ -6,15 +6,21 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def main():
+
+    # Set up argument parser for command line input
     parser = argparse.ArgumentParser(description="Evaluate a selected training run on the test split.")
     parser.add_argument("--run", required=True, help="Training folder inside models/, e.g. climbing-holds-2")
     args = parser.parse_args()
+
     if args.run in (".", "..") or Path(args.run).name != args.run:
         parser.error("--run must be a folder name inside models/")
+
     experiment = ROOT / "models" / args.run
     weights = experiment / "weights/best.pt"
+
     if not weights.is_file():
         parser.error(f"Model weights not found: {weights}")
+
 
     from ultralytics import YOLO
 
