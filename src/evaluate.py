@@ -1,37 +1,44 @@
 import json
+import argparse
 from pathlib import Path
-from ultralytics import YOLO
 
 ROOT = Path(__file__).resolve().parents[1]
 
-# create evaluation directory if it doesn't exist
-experiment = ROOT / "models/climbing-holds"             # path to model
-evaluation = experiment / "evaluation"
-evaluation.mkdir(parents = True, exist_ok = True)
 
-# lodad the fine tuned trained model
-model = YOLO(str(experiment / "weights/best.pt"))
+def main():
+    parser = argparse.ArgumentParser(description="Evaluate a selected training run on the test split.")
+    parser.add_argument("--run", required=True, help="Training folder inside models/, e.g. climbing-holds-2")
+    args = parser.parse_args()
+    if args.run in (".", "..") or Path(args.run).name != args.run:
+        parser.error("--run must be a folder name inside models/")
+    experiment = ROOT / "models" / args.run
+    weights = experiment / "weights/best.pt"
+    if not weights.is_file():
+        parser.error(f"Model weights not found: {weights}")
 
-# compares predictions to ground truth labels
-metrics = model.val(
-    data = str(
-        ROOT / "data/climbing-holds-v14/data.yaml"),
-    split = "test",                 # using the test set for evaluation
-    project = str(experiment),
-    name = "evaluation",
-    exist_ok = True,               # overwrite existing evaluation results
-    plots = True
-)
+    from ultralytics import YOLO
 
-results = {
-    "precision": metrics.box.mp,    # of predicted holds how many actually correct
-    "recall": metrics.box.mr,       # of actual holds how many were detected
-    "mAP50": metrics.box.map50,     # Mean average precision at an intersection-over-union (IoU) threshold of 0.50
-    "mAP50-95": metrics.box.map     # Mean average precision averaged across IoU thresholds from 0.50 to 0.95
-}
+    print(f"Using model: {weights}")
+    model = YOLO(str(weights))
 
-# Save metrics to the new evaluation directory
-with open(Path(metrics.save_dir) / "metrics.json", "w") as f:
-    json.dump(results, f, indent=4)
+    metrics = model.val(
+        data=str(ROOT / "data/climbing-holds-v14/data.yaml"),
+        split="test",
+        project=str(experiment),
+        name="evaluation",
+        exist_ok=True,  # Reuse this run's evaluation folder.
+        plots=True,
+    )
+    results = {
+        "precision": metrics.box.mp,
+        "recall": metrics.box.mr,
+        "mAP50": metrics.box.map50,
+        "mAP50-95": metrics.box.map,
+    }
+    with open(Path(metrics.save_dir) / "metrics.json", "w") as f:
+        json.dump(results, f, indent=4)
+    print(f"Evaluation results saved to {metrics.save_dir}")
 
-print(f"Evaluation results saved to {evaluation}")
+
+if __name__ == "__main__":
+    main()
